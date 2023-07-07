@@ -83,6 +83,7 @@ impl pallet_crowdfund::Config for Test {
 	type LargoMinimoNombreProyecto = ConstU32<4>;
 	type LargoMaximoNombreProyecto = ConstU32<20>;
 	type Currency = Balances;
+	type PalletId = CrowdfundPalletId;
 }
 
 // Build genesis storage according to the mock runtime.

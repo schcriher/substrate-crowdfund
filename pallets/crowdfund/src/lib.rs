@@ -24,6 +24,12 @@ pub mod pallet {
 	use frame_support::{pallet_prelude::*, Blake2_128Concat};
 	use frame_system::pallet_prelude::*;
 
+	use frame_support::{
+		sp_runtime::traits::{AccountIdConversion, Zero},
+		traits::ExistenceRequirement::KeepAlive,
+		PalletId,
+	};
+
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
@@ -40,6 +46,9 @@ pub mod pallet {
 		type LargoMaximoNombreProyecto: Get<u32>;
 
 		type Currency: Currency<Self::AccountId>; // Pueden no utilizarlo.
+
+		#[pallet::constant]
+		type PalletId: Get<PalletId>;
 	}
 
 	#[pallet::storage]
@@ -61,14 +70,40 @@ pub mod pallet {
 		FondosInsuficientes,
 		/// El usuario quiso apoyar un proyecto inexistente.
 		ProyectoNoExiste,
+		/// El usuario quiso registrar un proyecto ya existente.
+		ProyectoYaExiste,
+		/// El cantidad aportada debe ser mayor a cero.
+		CantidadDebeSerMayorACero,
 	}
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Crea un proyecto.
 		pub fn crear_proyecto(origen: OriginFor<T>, nombre: String) -> DispatchResult {
-			// Completar este método.
-			todo!()
+			let quien = ensure_signed(origen)?;
+
+			ensure!(
+				nombre.len() >= T::LargoMinimoNombreProyecto::get() as usize,
+				Error::<T>::NombreMuyCorto
+			);
+			ensure!(
+				nombre.len() <= T::LargoMaximoNombreProyecto::get() as usize,
+				Error::<T>::NombreMuyLargo
+			);
+			let nombre: NombreProyecto<T> = nombre.try_into().unwrap();
+
+			ensure!(!Proyectos::<T>::contains_key(&nombre), Error::<T>::ProyectoYaExiste);
+
+			Proyectos::<T>::set(&nombre, Zero::zero());
+
+			// TODO
+			// Debería almacenarse quien es el propietario de cada proyecto
+			// para luego transferir los fondos acumulados en la cuenta del pallet
+			// debiendo existir otro extrinsic para este efecto
+
+			Self::deposit_event(Event::ProyectoCreado { quien, nombre });
+
+			Ok(())
 		}
 
 		pub fn apoyar_proyecto(
@@ -76,8 +111,23 @@ pub mod pallet {
 			nombre: String,
 			cantidad: BalanceDe<T>,
 		) -> DispatchResult {
-			// Completar este método.
-			todo!()
+			let quien = ensure_signed(origen)?;
+
+			let nombre: NombreProyecto<T> = nombre.try_into().unwrap();
+			ensure!(Proyectos::<T>::contains_key(&nombre), Error::<T>::ProyectoNoExiste);
+
+			ensure!(cantidad > Zero::zero(), Error::<T>::CantidadDebeSerMayorACero);
+
+			let tesoro = T::PalletId::get().into_account_truncating();
+			let result = T::Currency::transfer(&quien, &tesoro, cantidad, KeepAlive);
+			ensure!(result.is_ok(), Error::<T>::FondosInsuficientes);
+
+			let balance = Proyectos::<T>::get(&nombre);
+			Proyectos::<T>::set(&nombre, balance + cantidad);
+
+			Self::deposit_event(Event::ProyectoApoyado { nombre, cantidad });
+
+			Ok(())
 		}
 	}
 }

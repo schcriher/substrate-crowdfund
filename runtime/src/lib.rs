@@ -37,6 +37,9 @@ pub use frame_support::{
 	},
 	StorageValue,
 };
+
+pub use frame_support::PalletId;
+
 pub use frame_system::Call as SystemCall;
 pub use pallet_balances::Call as BalancesCall;
 pub use pallet_timestamp::Call as TimestampCall;
@@ -267,12 +270,18 @@ impl pallet_sudo::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 }
 
+
+parameter_types! {
+	pub const CrowdfundPalletId: PalletId = PalletId(*b"py/cwdfd");
+}
+
 /// Configure the pallet-template in pallets/template.
 impl pallet_crowdfund::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type LargoMinimoNombreProyecto = ConstU32<4>;
 	type LargoMaximoNombreProyecto = ConstU32<20>;
+	type PalletId = CrowdfundPalletId;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
