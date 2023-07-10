@@ -99,13 +99,21 @@ pub mod pallet {
 			// TODO
 			// Debería almacenarse quien es el propietario de cada proyecto
 			// para luego transferir los fondos acumulados en la cuenta del pallet
-			// debiendo existir otro extrinsic para este efecto
+			// debiendo existir otro extrinsic para este efecto.
+			//
+			// Se considera que la cuenta del Pallet contiene al menos la cantidad
+			// mínima para subsistir (ExistentialDeposit), dado que no hay un mínimo
+			// para apoyar un proyecto, el primer apoyo fallará si es menor al
+			// ExistentialDeposit. Y si estaría implementado el mecanismo de extracción
+			// de los fondos, el último fondo extraído dejaría sin fondo al Pallet y
+			// fallaría (con KeepAlive) o se eliminaría la cuenta.
 
 			Self::deposit_event(Event::ProyectoCreado { quien, nombre });
 
 			Ok(())
 		}
 
+		/// Apoya un proyecto.
 		pub fn apoyar_proyecto(
 			origen: OriginFor<T>,
 			nombre: String,
