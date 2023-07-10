@@ -90,6 +90,7 @@ pub mod pallet {
 				nombre.len() <= T::LargoMaximoNombreProyecto::get() as usize,
 				Error::<T>::NombreMuyLargo
 			);
+			// unwrap no fallará porque antes se comprueba la longitud máxima del nombre
 			let nombre: NombreProyecto<T> = nombre.try_into().unwrap();
 
 			ensure!(!Proyectos::<T>::contains_key(&nombre), Error::<T>::ProyectoYaExiste);
@@ -121,6 +122,14 @@ pub mod pallet {
 		) -> DispatchResult {
 			let quien = ensure_signed(origen)?;
 
+			// Es necesario comprobar la longitud máxima porque sino fallará el unwrap,
+			// se falla con ProyectoNoExiste porque el que apoya no necesita saber
+			// las condiciones de longitud del nombre, en la mayoría de los casos
+			// tendrá el nombre correcto al cual quiere apoyar.
+			ensure!(
+				nombre.len() <= T::LargoMaximoNombreProyecto::get() as usize,
+				Error::<T>::ProyectoNoExiste
+			);
 			let nombre: NombreProyecto<T> = nombre.try_into().unwrap();
 			ensure!(Proyectos::<T>::contains_key(&nombre), Error::<T>::ProyectoNoExiste);
 

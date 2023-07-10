@@ -75,3 +75,13 @@ fn evento_cantidad_debe_ser_mayor_a_cero_funciona() {
 	});
 }
 
+#[test]
+fn apoyar_proyecto_con_nombre_muy_largo_funciona() {
+	new_test_ext().execute_with(|| {
+		let nombre_largo = "Supercalifragilisticoexpialidoso".encode();
+		assert_noop!(
+			Crowdfund::apoyar_proyecto(RuntimeOrigin::signed(1), nombre_largo, 500),
+			Error::<Test>::ProyectoNoExiste
+		);
+	});
+}
