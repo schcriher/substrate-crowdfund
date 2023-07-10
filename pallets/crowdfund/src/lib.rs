@@ -72,7 +72,7 @@ pub mod pallet {
 		ProyectoNoExiste,
 		/// El usuario quiso registrar un proyecto ya existente.
 		ProyectoYaExiste,
-		/// El cantidad aportada debe ser mayor a cero.
+		/// La cantidad aportada debe ser mayor a cero.
 		CantidadDebeSerMayorACero,
 	}
 
